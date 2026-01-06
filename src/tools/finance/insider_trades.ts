@@ -6,11 +6,11 @@ import { formatToolResult } from '../types.js';
 const InsiderTradesInputSchema = z.object({
   ticker: z
     .string()
-    .describe("The stock ticker symbol to fetch insider trades for. For example, 'AAPL' for Apple."),
+    .describe("The stock ticker symbol to fetch insider transactions for. For example, 'AAPL' for Apple."),
   limit: z
     .number()
     .default(100)
-    .describe('Maximum number of insider trades to return (default: 100, max: 1000).'),
+    .describe('Maximum number of insider transactions to return (default: 100, max: 1000).'),
   filing_date: z
     .string()
     .optional()
@@ -18,24 +18,24 @@ const InsiderTradesInputSchema = z.object({
   filing_date_gte: z
     .string()
     .optional()
-    .describe('Filter for trades with filing date greater than or equal to this date (YYYY-MM-DD).'),
+    .describe('Filter for transactions with filing date greater than or equal to this date (YYYY-MM-DD).'),
   filing_date_lte: z
     .string()
     .optional()
-    .describe('Filter for trades with filing date less than or equal to this date (YYYY-MM-DD).'),
+    .describe('Filter for transactions with filing date less than or equal to this date (YYYY-MM-DD).'),
   filing_date_gt: z
     .string()
     .optional()
-    .describe('Filter for trades with filing date greater than this date (YYYY-MM-DD).'),
+    .describe('Filter for transactions with filing date greater than this date (YYYY-MM-DD).'),
   filing_date_lt: z
     .string()
     .optional()
-    .describe('Filter for trades with filing date less than this date (YYYY-MM-DD).'),
+    .describe('Filter for transactions with filing date less than this date (YYYY-MM-DD).'),
 });
 
 export const getInsiderTrades = new DynamicStructuredTool({
   name: 'get_insider_trades',
-  description: `Retrieves insider trading transactions for a given company ticker. Insider trades include purchases and sales of company stock by executives, directors, and other insiders. This data is sourced from SEC Form 4 filings. Use filing_date filters to narrow down results by date range.`,
+  description: `Retrieves insider equity transactions for a given company ticker. Insider activity includes acquisitions and dispositions of company stock by executives, directors, and other insiders. This data is sourced from SEC Form 4 filings. Use filing_date filters to narrow down results by date range.`,
   schema: InsiderTradesInputSchema,
   func: async (input) => {
     const params: Record<string, string | number | undefined> = {

@@ -20,7 +20,9 @@ import {
   getCryptoTickers,
   getInsiderTrades,
 } from './finance/index.js';
-import { tavilySearch } from './search/index.js';
+
+// Note: Tavily search is not included by default to avoid requiring TAVILY_API_KEY
+// To enable web search, set TAVILY_API_KEY environment variable and manually import tavilySearch
 
 export const TOOLS: StructuredToolInterface[] = [
   getIncomeStatements,
@@ -42,7 +44,7 @@ export const TOOLS: StructuredToolInterface[] = [
   getAnalystEstimates,
   getSegmentedRevenues,
   getInsiderTrades,
-  ...(process.env.TAVILY_API_KEY ? [tavilySearch] : []),
+  // Tavily search removed to make it optional
 ];
 
 export {
@@ -65,5 +67,7 @@ export {
   getAnalystEstimates,
   getSegmentedRevenues,
   getInsiderTrades,
-  tavilySearch,
 };
+
+// Tavily search is optional - import separately if needed:
+// import { tavilySearch } from './tools/search/index.js';

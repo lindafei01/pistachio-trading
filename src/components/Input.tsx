@@ -23,13 +23,13 @@ export function Input({ onSubmit }: InputProps) {
       flexDirection="column" 
       marginBottom={1}
       borderStyle="single"
-      borderColor={colors.muted}
+      borderColor={colors.border}
       borderLeft={false}
       borderRight={false}
       width="100%"
     >
-      <Box paddingX={1}>
-        <Text color={colors.primary} bold>
+      <Box paddingX={1} backgroundColor={colors.panel}>
+        <Text color={colors.accent} bold>
           {'> '}
         </Text>
         <TextInput

@@ -9,7 +9,10 @@ import { z } from 'zod';
 import { DEFAULT_SYSTEM_PROMPT } from '../agent/prompts.js';
 
 export const DEFAULT_PROVIDER = 'openai';
-export const DEFAULT_MODEL = 'gpt-5.2';
+// export const DEFAULT_MODEL = 'gpt-5.2';
+// export const DEFAULT_MODEL = 'gpt-5';
+// 使用 Kimi (Moonshot) API - 128k 版本支持更长的 prompt
+export const DEFAULT_MODEL = 'moonshot-v1-128k';
 
 // Generic retry helper with exponential backoff
 async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
@@ -54,12 +57,27 @@ const MODEL_PROVIDERS: Record<string, ModelFactory> = {
     }),
 };
 
-const DEFAULT_MODEL_FACTORY: ModelFactory = (name, opts) =>
-  new ChatOpenAI({
+const DEFAULT_MODEL_FACTORY: ModelFactory = (name, opts) => {
+  // Moonshot (Kimi) uses OpenAI-compatible API, but many users keep a separate key/baseURL.
+  const isMoonshot = name.startsWith('moonshot-');
+  const apiKey = isMoonshot ? (process.env.MOONSHOT_API_KEY || process.env.OPENAI_API_KEY) : process.env.OPENAI_API_KEY;
+  const baseURL = isMoonshot ? (process.env.MOONSHOT_BASE_URL || process.env.OPENAI_BASE_URL) : process.env.OPENAI_BASE_URL;
+
+  const config: any = {
     model: name,
     ...opts,
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+    apiKey,
+  };
+  
+  // Support custom base URL (e.g., CMU AI Gateway)
+  if (baseURL) {
+    config.configuration = {
+      baseURL,
+    };
+  }
+  
+  return new ChatOpenAI(config);
+};
 
 export function getChatModel(
   modelName: string = DEFAULT_MODEL,
@@ -82,6 +100,19 @@ export async function callLlm(prompt: string, options: CallLlmOptions = {}): Pro
   const { model = DEFAULT_MODEL, systemPrompt, outputSchema, tools } = options;
   const finalSystemPrompt = systemPrompt || DEFAULT_SYSTEM_PROMPT;
 
+  // 🔍 DEBUG: 打印prompt内容
+  if (process.env.DEBUG_PROMPTS === 'true') {
+    console.log('\n' + '='.repeat(80));
+    console.log('🔍 [DEBUG] LLM Call');
+    console.log('='.repeat(80));
+    console.log('Model:', model);
+    console.log('\nSystem Prompt:');
+    console.log(finalSystemPrompt.substring(0, 500) + '...');
+    console.log('\nUser Prompt:');
+    console.log(prompt.substring(0, 1000) + (prompt.length > 1000 ? '...' : ''));
+    console.log('='.repeat(80) + '\n');
+  }
+
   const promptTemplate = ChatPromptTemplate.fromMessages([
     ['system', finalSystemPrompt],
     ['user', '{prompt}'],
@@ -93,7 +124,11 @@ export async function callLlm(prompt: string, options: CallLlmOptions = {}): Pro
   let runnable: Runnable<any, any> = llm;
 
   if (outputSchema) {
-    runnable = llm.withStructuredOutput(outputSchema);
+    // Use 'functionCalling' method instead of 'jsonSchema' for compatibility with older Azure API versions
+    // This avoids the "json_schema is enabled only for api versions 2024-08-01-preview and later" error
+    runnable = llm.withStructuredOutput(outputSchema, {
+      method: 'functionCalling',
+    });
   } else if (tools && tools.length > 0 && llm.bindTools) {
     runnable = llm.bindTools(tools);
   }

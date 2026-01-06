@@ -8,6 +8,8 @@ import { ReflectPhase } from './phases/reflect.js';
 import { AnswerPhase } from './phases/answer.js';
 import { ToolExecutor } from './tool-executor.js';
 import { TaskExecutor, TaskExecutorCallbacks } from './task-executor.js';
+import { StrategyCompiler } from '../trading/strategy-compiler.js';
+import type { CompiledStrategy } from '../trading/types.js';
 import type { 
   Phase, 
   Plan, 
@@ -90,6 +92,7 @@ export class Agent {
   private readonly reflectPhase: ReflectPhase;
   private readonly answerPhase: AnswerPhase;
   private readonly taskExecutor: TaskExecutor;
+  private readonly strategyCompiler: StrategyCompiler;
 
   constructor(options: AgentOptions) {
     this.model = options.model;
@@ -116,6 +119,9 @@ export class Agent {
       executePhase: this.executePhase,
       contextManager: this.contextManager,
     });
+
+    // Initialize strategy compiler
+    this.strategyCompiler = new StrategyCompiler({ model: this.model });
   }
 
   /**
@@ -224,5 +230,120 @@ export class Agent {
     this.callbacks.onPhaseComplete?.('answer');
 
     return '';
+  }
+
+  /**
+   * NEW: Compile a trading strategy from deep research
+   * 
+   * Runs the full research pipeline (Understand → Plan → Execute → Reflect)
+   * but instead of generating a text answer, compiles the analysis into
+   * an executable trading strategy for high-frequency execution.
+   * 
+   * This enables the hybrid mode: AI does deep analysis (slow) to generate
+   * strategies that can execute trades in real-time (fast).
+   */
+  async compileStrategy(
+    query: string,
+    messageHistory?: MessageHistory
+  ): Promise<CompiledStrategy> {
+    const taskResults: Map<string, TaskResult> = new Map();
+    const completedPlans: Plan[] = [];
+
+    // ========================================================================
+    // Phase 1: Understand
+    // ========================================================================
+    this.callbacks.onPhaseStart?.('understand');
+    
+    const understanding = await this.understandPhase.run({
+      query,
+      conversationHistory: messageHistory,
+    });
+    
+    this.callbacks.onUnderstandingComplete?.(understanding);
+    this.callbacks.onPhaseComplete?.('understand');
+
+    // ========================================================================
+    // Iterative Plan → Execute → Reflect Loop
+    // ========================================================================
+    let iteration = 1;
+    let guidanceFromReflection: string | undefined;
+
+    while (iteration <= this.maxIterations) {
+      this.callbacks.onIterationStart?.(iteration);
+
+      // Phase 2: Plan
+      this.callbacks.onPhaseStart?.('plan');
+      
+      const plan = await this.planPhase.run({
+        query,
+        understanding,
+        priorPlans: completedPlans.length > 0 ? completedPlans : undefined,
+        priorResults: taskResults.size > 0 ? taskResults : undefined,
+        guidanceFromReflection,
+      });
+      
+      this.callbacks.onPlanCreated?.(plan, iteration);
+      this.callbacks.onPhaseComplete?.('plan');
+
+      // Phase 3: Execute
+      this.callbacks.onPhaseStart?.('execute');
+
+      await this.taskExecutor.executeTasks(
+        query,
+        plan,
+        understanding,
+        taskResults,
+        this.callbacks
+      );
+
+      this.callbacks.onPhaseComplete?.('execute');
+      
+      completedPlans.push(plan);
+
+      // Phase 4: Reflect
+      this.callbacks.onPhaseStart?.('reflect');
+
+      const reflection = await this.reflectPhase.run({
+        query,
+        understanding,
+        completedPlans,
+        taskResults,
+        iteration,
+      });
+
+      this.callbacks.onReflectionComplete?.(reflection, iteration);
+      this.callbacks.onPhaseComplete?.('reflect');
+
+      if (reflection.isComplete) {
+        break;
+      }
+
+      guidanceFromReflection = this.reflectPhase.buildPlanningGuidance(reflection);
+
+      iteration++;
+    }
+
+    // ========================================================================
+    // Phase 5: Compile Strategy (instead of generating text answer)
+    // ========================================================================
+    this.callbacks.onPhaseStart?.('answer');
+    
+    console.log('[Agent] Compiling trading strategy from research results...');
+    
+    const strategy = await this.strategyCompiler.compileFromResearch(
+      query,
+      understanding,
+      taskResults,
+      completedPlans
+    );
+    
+    console.log(
+      `[Agent] Strategy compiled: ${strategy.signals.length} signals, ` +
+      `expires at ${strategy.expiresAt.toISOString()}`
+    );
+    
+    this.callbacks.onPhaseComplete?.('answer');
+
+    return strategy;
   }
 }

@@ -1,15 +1,22 @@
 export const colors = {
-  primary: '#58A6FF',
-  primaryLight: '#a5cfff',
-  success: 'green',
-  error: 'red',
-  warning: 'yellow',
-  muted: '#808080',
-  mutedDark: '#303030',
-  accent: 'cyan',
-  highlight: 'magenta',
+  // Claude Code-inspired (dark, high-contrast)
+  bg: '#0B0F14',
+  panel: '#0F1623',
+  border: '#2A3441',
+
+  primary: '#E5E7EB',
+  primaryLight: '#F3F4F6',
+  muted: '#9CA3AF',
+  mutedDark: '#111827',
+
+  accent: '#F59E0B', // amber
+  success: '#22C55E',
+  warning: '#FBBF24',
+  error: '#EF4444',
+  info: '#60A5FA',
+
+  highlight: '#A78BFA',
   white: '#ffffff',
-  info: '#6CB6FF',
 } as const;
 
 export const dimensions = {

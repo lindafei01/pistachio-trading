@@ -13,7 +13,7 @@ const CryptoPriceSnapshotInputSchema = z.object({
 
 export const getCryptoPriceSnapshot = new DynamicStructuredTool({
   name: 'get_crypto_price_snapshot',
-  description: `Fetches the most recent price snapshot for a specific cryptocurrency, including the latest price, trading volume, and other open, high, low, and close price data. Ticker format: use 'CRYPTO-USD' for USD prices (e.g., 'BTC-USD') or 'CRYPTO-CRYPTO' for crypto-to-crypto prices (e.g., 'BTC-ETH' for Bitcoin priced in Ethereum).`,
+  description: `Fetches the most recent price snapshot for a specific cryptocurrency, including the latest price, transaction volume, and other open, high, low, and close price data. Ticker format: use 'CRYPTO-USD' for USD prices (e.g., 'BTC-USD') or 'CRYPTO-CRYPTO' for crypto-to-crypto prices (e.g., 'BTC-ETH' for Bitcoin priced in Ethereum).`,
   schema: CryptoPriceSnapshotInputSchema,
   func: async (input) => {
     const params = { ticker: input.ticker };

@@ -103,21 +103,21 @@ export const AgentProgressView = React.memo(function AgentProgressView({
     <Box flexDirection="column" marginTop={1}>
       {/* Understand phase */}
       <PhaseIndicator 
-        label="Understanding query..."
+        label="Understanding…"
         complete={understandComplete}
         active={currentPhase === 'understand'}
       />
       
       {/* Planning phase */}
       <PhaseIndicator 
-        label="Planning next moves..."
+        label="Planning…"
         complete={planComplete}
         active={currentPhase === 'plan'}
       />
 
       {/* Reflect phase */}
       <PhaseIndicator 
-        label="Checking work..."
+        label="Checking…"
         complete={reflectComplete}
         active={currentPhase === 'reflect'}
       />
@@ -125,7 +125,7 @@ export const AgentProgressView = React.memo(function AgentProgressView({
       {/* Task list */}
       {tasks.length > 0 && (
         <Box flexDirection="column" marginTop={1}>
-          <Text color={colors.primary}>Working on your request:</Text>
+          <Text color={colors.muted}>Tasks</Text>
           <Box marginTop={1} marginLeft={2} flexDirection="column">
             <TaskListView tasks={tasks} />
           </Box>
@@ -139,7 +139,7 @@ export const AgentProgressView = React.memo(function AgentProgressView({
             <InkSpinner type="dots" />
           </Text>
           <Text> </Text>
-          <Text color={colors.primary}>Generating answer...</Text>
+          <Text color={colors.muted}>Responding…</Text>
         </Box>
       )}
     </Box>

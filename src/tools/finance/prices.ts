@@ -2,6 +2,7 @@ import { DynamicStructuredTool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { callApi } from './api.js';
 import { formatToolResult } from '../types.js';
+import { fetchYahooPrices } from './yahoo.js';
 
 const PriceSnapshotInputSchema = z.object({
   ticker: z
@@ -13,7 +14,7 @@ const PriceSnapshotInputSchema = z.object({
 
 export const getPriceSnapshot = new DynamicStructuredTool({
   name: 'get_price_snapshot',
-  description: `Fetches the most recent price snapshot for a specific stock ticker, including the latest price, trading volume, and other open, high, low, and close price data.`,
+  description: `Fetches the most recent price snapshot for a specific stock ticker, including the latest price, transaction volume, and other open, high, low, and close price data.`,
   schema: PriceSnapshotInputSchema,
   func: async (input) => {
     const params = { ticker: input.ticker };
@@ -45,6 +46,19 @@ export const getPrices = new DynamicStructuredTool({
   description: `Retrieves historical price data for a stock over a specified date range, including open, high, low, close prices, and volume.`,
   schema: PricesInputSchema,
   func: async (input) => {
+    const hasPaidKey = Boolean(process.env.FINANCIAL_DATASETS_API_KEY);
+
+    if (!hasPaidKey) {
+      const { prices, sourceUrl } = await fetchYahooPrices({
+        ticker: input.ticker,
+        interval: input.interval,
+        interval_multiplier: input.interval_multiplier,
+        start_date: input.start_date,
+        end_date: input.end_date,
+      });
+      return formatToolResult(prices, [sourceUrl]);
+    }
+
     const params = {
       ticker: input.ticker,
       interval: input.interval,

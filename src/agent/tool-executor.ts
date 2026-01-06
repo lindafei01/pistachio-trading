@@ -9,7 +9,9 @@ import type { Task, ToolCallStatus, Understanding } from './state.js';
 // Constants
 // ============================================================================
 
-const SMALL_MODEL = 'gpt-5-mini';
+// const SMALL_MODEL = 'gpt-5-mini';
+// 使用 Kimi 的轻量级模型（用于工具选择）
+const SMALL_MODEL = 'moonshot-v1-128k';
 
 // ============================================================================
 // Tool Executor Options

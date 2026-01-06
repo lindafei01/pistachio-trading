@@ -1,0 +1,252 @@
+
+╔═══════════════════════════════════════════════════════╗
+║  Debug Prompts - 捕获所有LLM调用                      ║
+╚═══════════════════════════════════════════════════════╝
+
+[HybridOrchestrator] Initialized
+  Research Model: gpt-5
+  Watchlist: AAPL
+  Refresh Interval: 60 minutes
+
+开始编译策略...
+所有prompts将被记录到: prompts-debug.log
+
+================================================================================
+
+[HybridOrchestrator] Refreshing strategy for AAPL...
+
+🔍 [HybridOrchestrator] Sending query to Research Agent:
+────────────────────────────────────────────────────────────────────────────────
+Create a market analysis framework for AAPL based on current market conditions. 
+Focus on generating actionable signals with specific conditions using technical indicators.
+The framework should be suitable for intraday or swing analysis.
+────────────────────────────────────────────────────────────────────────────────
+
+================================================================================
+🔍 [DEBUG] LLM Call
+================================================================================
+Model: gpt-5
+
+System Prompt:
+You are the understanding component for Dexter, a financial research agent.
+
+Your job is to analyze the user's query and extract:
+1. The user's intent - what they want to accomplish
+2. Key entities - tickers, companies, dates, metrics, time periods
+
+Current date: Monday, January 5, 2026
+
+Guidelines:
+- Be precise about what the user is asking for
+- Identify ALL relevant entities (companies, tickers, dates, metrics)
+- Normalize company names to ticker symbols when possible (e.g., "Apple" → "AAPL")...
+
+User Prompt:
+User query: "Create a market analysis framework for AAPL based on current market conditions. 
+Focus on generating actionable signals with specific conditions using technical indicators.
+The framework should be suitable for intraday or swing analysis."
+
+Extract the intent and entities from this query.
+================================================================================
+
+
+================================================================================
+🔍 [DEBUG] LLM Call
+================================================================================
+Model: gpt-5
+
+System Prompt:
+You are the planning component for Dexter, a financial research agent.
+
+Create a MINIMAL task list to answer the user's query.
+
+Current date: Monday, January 5, 2026
+
+## Task Types
+
+- use_tools: Task needs to fetch data using tools (e.g., get stock prices, financial metrics)
+- reason: Task requires LLM to analyze, compare, synthesize, or explain data
+
+## Rules
+
+1. MAXIMUM 6 words per task description
+2. Use 2-5 tasks total
+3. Set taskType correctly:
+   - "use_tools" for data fetching tasks (e.g....
+
+User Prompt:
+User query: "Create a market analysis framework for AAPL based on current market conditions. 
+Focus on generating actionable signals with specific conditions using technical indicators.
+The framework should be suitable for intraday or swing analysis."
+
+Understanding:
+- Intent: Design a technical-analysis-based market analysis framework for AAPL that produces actionable intraday or swing trading signals with explicit rule-based conditions tailored to current market conditions.
+- Entities: ticker: AAPL, company: Apple, period: intraday, period: swing, metric: technical indicators, other: actionable signals, other: specific conditions, other: market analysis framework, other: current market conditions
+
+Create a goal-oriented task list to answer this query.
+================================================================================
+
+
+================================================================================
+🔍 [DEBUG] LLM Call
+================================================================================
+Model: gpt-5-mini
+
+System Prompt:
+Select and call tools to complete the task. Use the provided tickers and parameters.
+
+- get_income_statements: Fetches a company's income statements, detailing its revenues, expenses, net income, etc. over a reporting period. Useful for evaluating a company's profitability and operational efficiency.
+  Arguments:
+  - ticker: The stock ticker symbol to fetch financial statements for. For example, 'AAPL' for Apple.
+  - period: The reporting period for the financial statements. 'annual' for yearly,...
+
+User Prompt:
+Task: Get AAPL intraday and daily data
+
+Tickers: AAPL
+Periods: intraday, swing
+
+Call the tools needed for this task.
+================================================================================
+
+
+================================================================================
+🔍 [DEBUG] LLM Call
+================================================================================
+Model: gpt-5-mini
+
+System Prompt:
+Select and call tools to complete the task. Use the provided tickers and parameters.
+
+- get_income_statements: Fetches a company's income statements, detailing its revenues, expenses, net income, etc. over a reporting period. Useful for evaluating a company's profitability and operational efficiency.
+  Arguments:
+  - ticker: The stock ticker symbol to fetch financial statements for. For example, 'AAPL' for Apple.
+  - period: The reporting period for the financial statements. 'annual' for yearly,...
+
+User Prompt:
+Task: Get SPY, VIX, rates data
+
+Tickers: AAPL
+Periods: intraday, swing
+
+Call the tools needed for this task.
+================================================================================
+
+[HybridOrchestrator] Failed to compile strategy for AAPL: 36 |         if (!status || !headers) {
+37 |             return new APIConnectionError({ message, cause: castToError(errorResponse) });
+38 |         }
+39 |         const error = errorResponse?.['error'];
+40 |         if (status === 400) {
+41 |             return new BadRequestError(status, error, message, headers);
+                        ^
+error: 400 litellm.BadRequestError: litellm.ContentPolicyViolationError: litellm.ContentPolicyViolationError: AzureException - The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766
+model=gpt-5-mini. content_policy_fallback=None. fallbacks=None.
+
+Set 'content_policy_fallback' - https://docs.litellm.ai/docs/routing#fallbacks. Received Model Group=gpt-5-mini
+Available Model Group Fallbacks=None
+    status: 400,
+   headers: Headers {
+  "date": "Tue, 06 Jan 2026 01:19:31 GMT",
+  "content-type": "application/json",
+  "content-length": "375",
+  "connection": "keep-alive",
+  "content-encoding": "br",
+  "vary": "Accept-Encoding",
+  "cf-ray": "9b9762a74ed1c9bb-IAD",
+  "rndr-id": "4a5e53dc-23c1-46a5",
+  "x-litellm-call-id": "ae44b254-0f11-4975-9d62-a07f6897842b",
+  "x-litellm-key-spend": "428.09694424999964",
+  "x-litellm-response-cost": "0",
+  "x-litellm-timeout": "6000.0",
+  "x-render-origin-server": "uvicorn",
+  "cf-cache-status": "DYNAMIC",
+  "server": "cloudflare",
+  "alt-svc": "h3=\":443\"; ma=86400",
+},
+ requestID: null,
+     error: {
+  message: "litellm.BadRequestError: litellm.ContentPolicyViolationError: litellm.ContentPolicyViolationError: AzureException - The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766\nmodel=gpt-5-mini. content_policy_fallback=None. fallbacks=None.\n\nSet 'content_policy_fallback' - https://docs.litellm.ai/docs/routing#fallbacks. Received Model Group=gpt-5-mini\nAvailable Model Group Fallbacks=None",
+  type: null,
+  param: null,
+  code: "400",
+},
+     param: null,
+      type: null,
+      code: "400"
+
+      at generate (/ocean/projects/cis240137p/yfei4/financial-deep-research/node_modules/openai/core/error.mjs:41:20)
+      at makeRequest (/ocean/projects/cis240137p/yfei4/financial-deep-research/node_modules/openai/client.mjs:330:30)
+
+
+❌ 策略编译失败
+错误信息: 36 |         if (!status || !headers) {
+37 |             return new APIConnectionError({ message, cause: castToError(errorResponse) });
+38 |         }
+39 |         const error = errorResponse?.['error'];
+40 |         if (status === 400) {
+41 |             return new BadRequestError(status, error, message, headers);
+                        ^
+error: 400 litellm.BadRequestError: litellm.ContentPolicyViolationError: litellm.ContentPolicyViolationError: AzureException - The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766
+model=gpt-5-mini. content_policy_fallback=None. fallbacks=None.
+
+Set 'content_policy_fallback' - https://docs.litellm.ai/docs/routing#fallbacks. Received Model Group=gpt-5-mini
+Available Model Group Fallbacks=None
+    status: 400,
+   headers: Headers {
+  "date": "Tue, 06 Jan 2026 01:19:31 GMT",
+  "content-type": "application/json",
+  "content-length": "375",
+  "connection": "keep-alive",
+  "content-encoding": "br",
+  "vary": "Accept-Encoding",
+  "cf-ray": "9b9762a74ed1c9bb-IAD",
+  "rndr-id": "4a5e53dc-23c1-46a5",
+  "x-litellm-call-id": "ae44b254-0f11-4975-9d62-a07f6897842b",
+  "x-litellm-key-spend": "428.09694424999964",
+  "x-litellm-response-cost": "0",
+  "x-litellm-timeout": "6000.0",
+  "x-render-origin-server": "uvicorn",
+  "cf-cache-status": "DYNAMIC",
+  "server": "cloudflare",
+  "alt-svc": "h3=\":443\"; ma=86400",
+},
+ requestID: null,
+     error: {
+  message: "litellm.BadRequestError: litellm.ContentPolicyViolationError: litellm.ContentPolicyViolationError: AzureException - The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766\nmodel=gpt-5-mini. content_policy_fallback=None. fallbacks=None.\n\nSet 'content_policy_fallback' - https://docs.litellm.ai/docs/routing#fallbacks. Received Model Group=gpt-5-mini\nAvailable Model Group Fallbacks=None",
+  type: null,
+  param: null,
+  code: "400",
+},
+     param: null,
+      type: null,
+      code: "400"
+
+      at generate (/ocean/projects/cis240137p/yfei4/financial-deep-research/node_modules/openai/core/error.mjs:41:20)
+      at makeRequest (/ocean/projects/cis240137p/yfei4/financial-deep-research/node_modules/openai/client.mjs:330:30)
+
+
+错误详情:
+  Message: 400 litellm.BadRequestError: litellm.ContentPolicyViolationError: litellm.ContentPolicyViolationError: AzureException - The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766
+model=gpt-5-mini. content_policy_fallback=None. fallbacks=None.
+
+Set 'content_policy_fallback' - https://docs.litellm.ai/docs/routing#fallbacks. Received Model Group=gpt-5-mini
+Available Model Group Fallbacks=None
+  Stack: Error: 400 litellm.BadRequestError: litellm.ContentPolicyViolationError: litellm.ContentPolicyViolationError: AzureException - The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766
+model=gpt-5-mini. content_policy_fallback=None. fallbacks=None.
+
+Set 'content_policy_fallback' - https://docs.litellm.ai/docs/routing#fallbacks. Received Model Group=gpt-5-mini
+Available Model Group Fallbacks=None
+    at generate (/ocean/projects/cis240137p/yfei4/financial-deep-research/node_modules/openai/core/error.mjs:41:24)
+    at makeRequest (/ocean/projects/cis240137p/yfei4/financial-deep-research/node_modules/openai/client.mjs:330:30)
+    at processTicksAndRejections (native:7:39)
+[HybridOrchestrator] Stopping...
+[HybridOrchestrator] Stopped
+
+================================================================================
+📝 完整日志已保存到: prompts-debug.log
+================================================================================
+
+查看日志:
+  cat prompts-debug.log
+  grep -i "prompt" prompts-debug.log
+  grep -i "trading\|buy\|sell" prompts-debug.log

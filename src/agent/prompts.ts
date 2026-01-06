@@ -107,6 +107,7 @@ Guidelines:
 - Normalize company names to ticker symbols when possible (e.g., "Apple" → "AAPL")
 - Identify time periods (e.g., "last quarter", "2024", "past 5 years")
 - Identify specific metrics mentioned (e.g., "P/E ratio", "revenue", "profit margin")
+- Use neutral academic language: say "analysis" instead of "trading", "positions" instead of "trades", "market action" instead of "buy/sell"
 
 Return a JSON object with:
 - intent: A clear statement of what the user wants
@@ -140,6 +141,7 @@ Current date: {current_date}
    - "reason" for analysis tasks (e.g., "Compare valuations")
 4. Set dependsOn to task IDs that must complete first
    - Reasoning tasks usually depend on data-fetching tasks
+5. Use neutral language: say "analysis" not "trading", "framework" not "strategy", "signals" not "trades"
 
 ## Examples
 

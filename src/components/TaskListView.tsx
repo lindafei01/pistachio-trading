@@ -56,7 +56,7 @@ function ToolCallRow({ toolCall, isLast }: ToolCallRowProps) {
   // Replace underscores with spaces for readability
   const toolName = toolCall.tool.replace(/_/g, ' ');
   // Completed tool calls get default text color, others stay muted
-  const textColor = toolCall.status === 'completed' ? undefined : colors.muted;
+  const textColor = toolCall.status === 'completed' ? colors.primary : colors.muted;
   
   return (
     <Box>
@@ -99,7 +99,7 @@ interface TaskRowProps {
 }
 
 const TaskRow = React.memo(function TaskRow({ task }: TaskRowProps) {
-  const textColor = task.status === 'pending' ? colors.muted : undefined;
+  const textColor = task.status === 'pending' ? colors.muted : colors.primary;
   const hasToolCalls = task.toolCalls && task.toolCalls.length > 0;
   const isActive = task.status === 'in_progress' || task.status === 'completed';
   

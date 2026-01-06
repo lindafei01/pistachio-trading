@@ -17,6 +17,12 @@ const PROVIDERS: Provider[] = [
     description: "GPT 5.2 - OpenAI's flagship model",
   },
   {
+    displayName: 'Moonshot (Kimi)',
+    providerId: 'moonshot',
+    modelId: 'moonshot-v1-128k',
+    description: 'Moonshot v1 128k - OpenAI-compatible, long context',
+  },
+  {
     displayName: 'Anthropic',
     providerId: 'anthropic',
     modelId: 'claude-sonnet-4-5',

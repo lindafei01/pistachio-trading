@@ -4,6 +4,7 @@ import { MessageHistory } from '../utils/message-history.js';
 import { generateId } from '../cli/types.js';
 import type { Task, Phase, TaskStatus, ToolCallStatus, Plan } from '../agent/state.js';
 import type { AgentProgressState } from '../components/AgentProgressView.js';
+import type { CompiledStrategy } from '../trading/types.js';
 
 // ============================================================================
 // Types
@@ -39,6 +40,7 @@ interface UseAgentExecutionResult {
   isProcessing: boolean;
   toolErrors: ToolError[];
   processQuery: (query: string) => Promise<void>;
+  compileStrategy: (query: string) => Promise<CompiledStrategy>;
   handleAnswerComplete: (answer: string) => void;
   cancelExecution: () => void;
 }
@@ -371,6 +373,60 @@ export function useAgentExecution({
   );
 
   /**
+   * Runs the same multi-phase pipeline but returns a compiled strategy instead
+   * of streaming a text answer. This keeps the phase/task UI updated via callbacks.
+   */
+  const compileStrategy = useCallback(
+    async (query: string): Promise<CompiledStrategy> => {
+      if (isProcessingRef.current) {
+        throw new Error('Agent is already processing a request');
+      }
+      isProcessingRef.current = true;
+      setIsProcessing(true);
+
+      // Store current query for message history
+      currentQueryRef.current = query;
+
+      // Clear any pending updates and errors from previous run
+      pendingTaskUpdatesRef.current = [];
+      pendingToolCallUpdatesRef.current = [];
+      setToolErrors([]);
+
+      // Initialize turn state
+      setCurrentTurn({
+        id: generateId(),
+        query,
+        state: {
+          currentPhase: 'understand',
+          understandComplete: false,
+          planComplete: false,
+          reflectComplete: false,
+          tasks: [],
+          isAnswering: true, // reuse the "Responding…" row as "Compiling…"
+        },
+      });
+
+      const callbacks = createAgentCallbacks();
+
+      try {
+        const agent = new Agent({ model, callbacks });
+        const strategy = await agent.compileStrategy(query, messageHistory);
+        // Stop "answering" indicator for this turn; the caller will decide what to print.
+        setAnswering(false);
+        return strategy;
+      } catch (e) {
+        setCurrentTurn(null);
+        currentQueryRef.current = null;
+        throw e;
+      } finally {
+        isProcessingRef.current = false;
+        setIsProcessing(false);
+      }
+    },
+    [model, messageHistory, createAgentCallbacks, setAnswering]
+  );
+
+  /**
    * Cancels the current execution.
    */
   const cancelExecution = useCallback(() => {
@@ -386,6 +442,7 @@ export function useAgentExecution({
     isProcessing,
     toolErrors,
     processQuery,
+    compileStrategy,
     handleAnswerComplete,
     cancelExecution,
   };

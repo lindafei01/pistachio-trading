@@ -2,6 +2,7 @@ import { DynamicStructuredTool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { callApi } from './api.js';
 import { formatToolResult } from '../types.js';
+import { fetchYahooNewsRss } from './yahoo.js';
 
 const NewsInputSchema = z.object({
   ticker: z
@@ -23,6 +24,16 @@ export const getNews = new DynamicStructuredTool({
   description: `Retrieves recent news articles for a given company ticker, covering financial announcements, market trends, and other significant events. Useful for staying up-to-date with market-moving information and investor sentiment.`,
   schema: NewsInputSchema,
   func: async (input) => {
+    const hasPaidKey = Boolean(process.env.FINANCIAL_DATASETS_API_KEY);
+    if (!hasPaidKey) {
+      const { news, sourceUrl } = await fetchYahooNewsRss({
+        ticker: input.ticker,
+        limit: Math.min(100, Math.max(1, input.limit ?? 10)),
+      });
+      // Note: Yahoo RSS doesn't support start/end date filtering; we return latest items.
+      return formatToolResult(news, [sourceUrl]);
+    }
+
     const params: Record<string, string | number | undefined> = {
       ticker: input.ticker,
       limit: input.limit,
