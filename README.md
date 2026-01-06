@@ -8,7 +8,7 @@
 
 ## 🎯 Overview
 
-Pistachio is an intelligent trading system that combines the analytical power of Large Language Models with disciplined quantitative execution. It autonomously generates trading strategies, validates them through rigorous backtesting, and executes them in real-time with sub-10ms latency.
+Inspired by [Dexter](https://github.com/virattt/dexter), Pistachio is an agentic trading system that combines the analytical power of Large Language Models with disciplined quantitative execution. Beyond extracting data and info for market analysis, Pistachio also autonomously generates trading strategies, validates them through rigorous backtesting, and executes them in real-time.
 
 ### Key Features
 
@@ -22,39 +22,9 @@ Pistachio is an intelligent trading system that combines the analytical power of
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      Pistachio System                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌─────────────────┐         ┌──────────────────┐          │
-│  │  Research Mode  │────────▶│  Backtest Engine │          │
-│  │                 │         │                  │          │
-│  │ • LLM Analysis  │         │ • Slippage       │          │
-│  │ • Tool Calling  │         │ • Commission     │          │
-│  │ • Strategy Gen  │         │ • Stop Loss/TP   │          │
-│  └─────────────────┘         └──────────────────┘          │
-│           │                           │                      │
-│           │                           ▼                      │
-│           │                  ┌────────────────┐             │
-│           │                  │  Gate Checks   │             │
-│           │                  │                │             │
-│           │                  │ 1. Min Trades  │             │
-│           │                  │ 2. Drift       │             │
-│           │                  │ 3. Drawdown    │             │
-│           │                  └────────────────┘             │
-│           │                           │                      │
-│           │                           ▼                      │
-│           │                  ┌────────────────┐             │
-│           └─────────────────▶│ Trading Mode   │             │
-│                              │                │             │
-│                              │ • <10ms exec   │             │
-│                              │ • Real-time    │             │
-│                              │ • No LLM calls │             │
-│                              └────────────────┘             │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
+![Pistachio System Design](img/system%20design.png)
+![Pistachio CLI Demo #1](img/system%20screenshot1.png)
+![Pistachio CLI Demo #2](img/system%20screenshot2.png)
 
 ## 🚀 Quick Start
 
@@ -199,6 +169,7 @@ MIT License - See LICENSE file for details
 ## 🙏 Acknowledgments
 
 Built with:
+- [Dexter](https://github.com/virattt/dexter) - An autonomous agent for deep financial research
 - [LangChain](https://www.langchain.com/) - LLM orchestration
 - [Ink](https://github.com/vadimdemedes/ink) - React for CLI
 - [Bun](https://bun.sh/) - Fast JavaScript runtime
@@ -206,5 +177,5 @@ Built with:
 
 ---
 
-Made with 🥜 by [Your Name]
+Made with Perfectly Pistachio Passion❤🥜
 

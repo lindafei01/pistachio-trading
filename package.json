@@ -1,6 +1,6 @@
 {
   "name": "pistachio-ts",
-  "version": "2.4.1",
+  "version": "0.0.1",
   "description": "Pistachio - AI agent for deep financial research.",
   "type": "module",
   "main": "src/index.tsx",
