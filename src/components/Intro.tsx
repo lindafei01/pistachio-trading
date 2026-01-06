@@ -13,7 +13,7 @@ export function Intro({ provider }: IntroProps) {
     <Box flexDirection="column" marginTop={1} marginBottom={1} paddingX={1}>
       <Box>
         <Text color={colors.accent} bold>
-          Dexter
+          Pistachio
         </Text>
         <Text color={colors.muted}>{` v${packageJson.version}`}</Text>
       </Box>

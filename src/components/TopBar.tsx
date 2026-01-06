@@ -60,7 +60,7 @@ export const TopBar = React.memo(function TopBar({
     >
       <Box flexGrow={1}>
         <Text color={colors.accent} bold>
-          Dexter
+          Pistachio
         </Text>
         <Text color={colors.muted}>{` v${packageJson.version}`}</Text>
       </Box>

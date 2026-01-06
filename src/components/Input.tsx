@@ -72,11 +72,6 @@ export function Input({ onSubmit }: InputProps) {
   };
 
   useInput((input, key) => {
-    // Debug: log key events
-    if (process.env.DEBUG_INPUT === 'true') {
-      console.error(`[Input] key event: input="${input}" (charCodes: ${[...input].map(c => c.charCodeAt(0)).join(',')}), key=`, JSON.stringify(key));
-    }
-
     // Let outer app handle Ctrl+C etc.
     if (key.ctrl) return;
 
@@ -95,29 +90,21 @@ export function Input({ onSubmit }: InputProps) {
       setCursor(c => Math.min(value.length, c + 1));
       return;
     }
-    // Home/End are not consistently normalized by Ink across terminals; skip for portability.
 
-    // Handle backspace: either key.backspace or charCode 127 (DEL character used by many terminals)
-    const isBackspace = key.backspace || (input.length === 1 && input.charCodeAt(0) === 127);
+    // Handle backspace/delete: in many terminals, Backspace is mapped to Delete
+    // To ensure it works everywhere, we treat BOTH keys as backspace (delete left)
+    const has127 = input.length > 0 && [...input].some(c => c.charCodeAt(0) === 127);
+    const isDeleteKey = key.backspace || key.delete || has127;
     
-    if (isBackspace || key.delete) {
-      if (process.env.DEBUG_INPUT === 'true') {
-        console.error(`[Input] Delete key detected: backspace=${isBackspace}, delete=${key.delete}, cursor=${cursor}, value.length=${value.length}`);
-      }
-    }
-
-    if (isBackspace) {
+    if (isDeleteKey) {
       const pos = Math.max(0, Math.min(cursor, value.length));
-      if (pos === 0) return;
-      setValue(value.slice(0, pos - 1) + value.slice(pos));
-      setCursor(pos - 1);
-      return;
-    }
-
-    if (key.delete) {
-      const pos = Math.max(0, Math.min(cursor, value.length));
-      if (pos >= value.length) return;
-      setValue(value.slice(0, pos) + value.slice(pos + 1));
+      if (pos === 0) return; // Nothing to delete
+      
+      // Count how many 127s (might be multiple backspaces pressed together)
+      const deleteCount = has127 ? Math.min([...input].filter(c => c.charCodeAt(0) === 127).length, pos) : 1;
+      
+      setValue(value.slice(0, pos - deleteCount) + value.slice(pos));
+      setCursor(pos - deleteCount);
       return;
     }
 
@@ -130,46 +117,31 @@ export function Input({ onSubmit }: InputProps) {
     setCursor(pos + incoming.length);
   });
 
-  // Show preview if query is longer than 60 characters
-  const showPreview = value.length > 60;
-  
-  // Calculate available width for preview
-  // Terminal width minus: left border (1) + left padding (1) + right padding (1) + right border (1) = 4
+  // Calculate terminal width for wrapping
   const terminalWidth = stdout.columns || 80;
-  const previewWidth = Math.max(40, terminalWidth - 4);
-  const previewLines = useMemo(() => (showPreview ? wrapText(value, previewWidth) : []), [showPreview, value, previewWidth]);
+  const contentWidth = Math.max(40, terminalWidth - 6); // Account for prompt and padding
   
-  // Debug: log to help diagnose width issues
-  if (showPreview && previewLines.length > 0 && process.env.DEBUG_INPUT === 'true') {
-    console.error(`[Input] value.length=${value.length}, terminalWidth=${terminalWidth}, previewWidth=${previewWidth}, lines=${previewLines.length}`);
-    console.error(`[Input] full value: "${value}"`);
-    previewLines.forEach((line, i) => {
-      console.error(`[Input] line ${i}: length=${line.length}, content="${line}"`);
-    });
-    const totalChars = previewLines.reduce((sum, line) => sum + line.length, 0);
-    // wrapText drops the spaces at wrap boundaries; account for that for this diagnostic.
-    const approxExpected = value.length - Math.max(0, previewLines.length - 1);
-    console.error(`[Input] total chars in lines: ${totalChars}, approxExpected: ${approxExpected}`);
-  }
-
-  // Render a single-line editor view with a visible cursor, while the preview shows full multi-line wrap.
-  const prompt = '> ';
-  const countSuffix = value.length > 50 ? ` (${value.length})` : '';
-  const contentWidth = Math.max(10, terminalWidth - 4 - prompt.length - countSuffix.length); // rough: borders+padding
-
-  const windowStart = Math.min(
-    Math.max(0, safeCursor - Math.floor(contentWidth * 0.7)),
-    Math.max(0, value.length - contentWidth)
-  );
-  const windowEnd = Math.min(value.length, windowStart + contentWidth);
-  const slice = value.slice(windowStart, windowEnd);
-  const cursorInSlice = safeCursor - windowStart;
-
-  const before = slice.slice(0, cursorInSlice);
-  const at = slice[cursorInSlice] ?? ' ';
-  const after = slice.slice(cursorInSlice + 1);
-  const showLeftEllipsis = windowStart > 0;
-  const showRightEllipsis = windowEnd < value.length;
+  // Split text into lines that fit the terminal width (memoized for performance)
+  const lines = useMemo(() => wrapText(value, contentWidth), [value, contentWidth]);
+  
+  // Find which line the cursor is on and where in that line (memoized for performance)
+  const { cursorLine, cursorCol } = useMemo(() => {
+    let charCount = 0;
+    let line = 0;
+    let col = safeCursor;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const lineLength = lines[i].length;
+      if (charCount + lineLength >= safeCursor) {
+        line = i;
+        col = safeCursor - charCount;
+        break;
+      }
+      charCount += lineLength + 1; // +1 for the space that was removed during wrapping
+    }
+    
+    return { cursorLine: line, cursorCol: col };
+  }, [lines, safeCursor]);
 
   return (
     <Box 
@@ -180,46 +152,47 @@ export function Input({ onSubmit }: InputProps) {
       borderLeft={false}
       borderRight={false}
     >
-      {/* Preview area - shows full query if it's long */}
-      {showPreview && previewLines.length > 0 && (
-        <Box 
-          paddingX={1} 
-          paddingY={0}
-          backgroundColor={colors.panel}
-          borderTop={false}
-          borderBottom={true}
-          borderStyle="single"
-          borderColor={colors.border}
-          flexDirection="column"
-          minHeight={previewLines.length}
-        >
-          <Box flexDirection="column">
-            {previewLines.map((line, idx) => (
-              <Box key={idx}>
-                <Text color={colors.muted}>
-                  {line}
-                </Text>
-              </Box>
-            ))}
+      {/* Multi-line input display */}
+      <Box flexDirection="column" paddingX={1} backgroundColor={colors.panel}>
+        {lines.length === 0 ? (
+          // Empty input
+          <Box>
+            <Text color={colors.accent} bold>{'> '}</Text>
+            <Text inverse> </Text>
           </Box>
-        </Box>
-      )}
-      
-      {/* Input line */}
-      <Box paddingX={1} backgroundColor={colors.panel}>
-        <Text color={colors.accent} bold>
-          {'> '}
-        </Text>
-        {showLeftEllipsis && <Text color={colors.muted}>…</Text>}
-        <Text>{before}</Text>
-        <Text inverse>{at}</Text>
-        <Text>{after}</Text>
-        {showRightEllipsis && <Text color={colors.muted}>…</Text>}
+        ) : (
+          // Display all lines with cursor on the correct line
+          lines.map((line, lineIdx) => (
+            <Box key={lineIdx}>
+              {lineIdx === 0 && (
+                <Text color={colors.accent} bold>{'> '}</Text>
+              )}
+              {lineIdx > 0 && (
+                <Text color={colors.accent} bold>{'  '}</Text>
+              )}
+              
+              {lineIdx === cursorLine ? (
+                // This line contains the cursor
+                <>
+                  <Text>{line.slice(0, cursorCol)}</Text>
+                  <Text inverse>{line[cursorCol] ?? ' '}</Text>
+                  <Text>{line.slice(cursorCol + 1)}</Text>
+                </>
+              ) : (
+                // Regular line without cursor
+                <Text>{line}</Text>
+              )}
+            </Box>
+          ))
+        )}
+        
         {/* Character count for long inputs */}
-        {value.length > 50 && (
-          <Text color={colors.muted} dimColor>
-            {' '}({value.length})
-          </Text>
+        {value.length > 100 && (
+          <Box>
+            <Text color={colors.muted} dimColor>
+              ({value.length} characters)
+            </Text>
+          </Box>
         )}
       </Box>
     </Box>

@@ -21,6 +21,7 @@ import { TaskListView } from './components/TaskListView.js';
 import { TopBar } from './components/TopBar.js';
 import type { AppMode } from './components/TopBar.js';
 import { EventLogView } from './components/EventLogView.js';
+import { DetailsPanel } from './components/DetailsPanel.js';
 import type { Task } from './agent/state.js';
 import type { AgentProgressState } from './components/AgentProgressView.js';
 
@@ -47,7 +48,9 @@ import {
   newUiEvent,
   type CompiledStrategy,
   type HybridUiEvent,
+  type BacktestResult,
 } from './trading/index.js';
+import { diagnoseNoTrades, formatDiagnosis } from './trading/diagnostics.js';
 
 import type { AppState } from './cli/types.js';
 
@@ -135,6 +138,11 @@ export function CLI() {
   const [history, setHistory] = useState<CompletedTurn[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [hybridEvents, setHybridEvents] = useState<HybridUiEvent[]>([]);
+  
+  // Store details for DetailsPanel
+  const [currentStrategy, setCurrentStrategy] = useState<CompiledStrategy | null>(null);
+  const [currentBacktestResult, setCurrentBacktestResult] = useState<BacktestResult | null>(null);
+  const [currentDiagnosis, setCurrentDiagnosis] = useState<string | null>(null);
 
   // Derive model from provider
   const model = getModelIdForProvider(provider) || getModelIdForProvider(DEFAULT_PROVIDER)!;
@@ -204,13 +212,22 @@ export function CLI() {
 
   const runHybridQuery = useCallback(
     async (query: string) => {
+      // Reset UI state
       setHybridEvents([]);
+      setCurrentStrategy(null);
+      setCurrentBacktestResult(null);
+      setCurrentDiagnosis(null);
+      
       setMode('RESEARCH');
       appendHybridEvent(newUiEvent({ level: 'info', kind: 'mode', message: 'Mode → RESEARCH (start)' }));
 
       // 1) Research: compile executable Strategy Spec (multi-agent UI stays visible)
       appendHybridEvent(newUiEvent({ level: 'info', kind: 'system', message: 'Research: compiling Strategy Spec…' }));
       const strategy = await compileStrategy(query);
+      
+      // Update UI with strategy details
+      setCurrentStrategy(strategy);
+      
       appendHybridEvent(
         newUiEvent({
           level: 'ok',
@@ -274,6 +291,9 @@ export function CLI() {
       appendHybridEvent(newUiEvent({ level: 'info', kind: 'system', message: 'Backtest: running…' }));
       const result = await backtest.runBacktest(historical);
       const m = result.metrics;
+      
+      // Update UI with backtest results
+      setCurrentBacktestResult(result);
 
       const gate = {
         minTrades: 3,
@@ -299,6 +319,11 @@ export function CLI() {
         setMode('RESEARCH');
         appendHybridEvent(newUiEvent({ level: 'warn', kind: 'mode', message: 'Mode stays RESEARCH (gate failed)' }));
 
+        // Generate diagnosis for failed gate
+        const diagnosis = diagnoseNoTrades(strategy, result, historical.length);
+        const diagnosisMessage = formatDiagnosis(diagnosis);
+        setCurrentDiagnosis(diagnosisMessage);
+
         const summary =
           `Hybrid run summary\n` +
           `${formatStrategySpec(strategy)}\n` +
@@ -307,7 +332,8 @@ export function CLI() {
           `- totalReturn: ${m.totalReturn.toFixed(2)}%\n` +
           `- maxDrawdown: ${m.maxDrawdown.toFixed(2)}%\n` +
           `\nDecision\n` +
-          `- Gate #1 failed → stay in RESEARCH\n`;
+          `- Gate #1 failed → stay in RESEARCH\n` +
+          `\nDiagnosis\n${diagnosisMessage}\n`;
         handleAnswerComplete(summary);
         return;
       }
@@ -516,6 +542,64 @@ export function CLI() {
         executeHybridQuery(rest);
         return;
       }
+      
+      // Handle follow-up commands for failed gates
+      if (query === '/suggest') {
+        if (!currentStrategy || !currentDiagnosis) {
+          setStatusMessage('No failed strategy to suggest improvements for. Run a hybrid query first.');
+          return;
+        }
+        
+        if (state === 'running') {
+          enqueue(query);
+          return;
+        }
+        
+        // Ask AI to suggest strategy adjustments based on diagnosis
+        const suggestQuery = `Based on this trading strategy and diagnosis, suggest specific improvements:\n\n` +
+          `Strategy: ${currentStrategy.ticker}, ${currentStrategy.timeframe}\n` +
+          `Signals: ${currentStrategy.signals.length}\n` +
+          `Diagnosis: ${currentDiagnosis}\n\n` +
+          `Provide concrete parameter adjustments (e.g., "Change RSI threshold from 30 to 35").`;
+        executeQuery(suggestQuery);
+        return;
+      }
+      
+      if (query.startsWith('/manual ')) {
+        const userStrategy = query.replace(/^\/manual\s+/, '').trim();
+        if (!userStrategy) {
+          setStatusMessage('Usage: /manual <your strategy description>');
+          return;
+        }
+        
+        if (state === 'running') {
+          enqueue(query);
+          return;
+        }
+        
+        // Run hybrid flow with user's custom strategy
+        executeHybridQuery(userStrategy);
+        return;
+      }
+      
+      if (query === '/retry') {
+        if (!currentStrategy) {
+          setStatusMessage('No strategy to retry. Run a hybrid query first.');
+          return;
+        }
+        
+        if (state === 'running') {
+          enqueue(query);
+          return;
+        }
+        
+        // Retry with same ticker but ask AI to use different parameters
+        const retryQuery = `Create a trading strategy for ${currentStrategy.ticker} with DIFFERENT parameters ` +
+          `than before (e.g., different timeframe, different indicators, or relaxed thresholds). ` +
+          `Previous attempt had: ${currentStrategy.signals.length} signals, timeframe=${currentStrategy.timeframe}.`;
+        executeHybridQuery(retryQuery);
+        return;
+      }
 
       // Queue the query if already running
       if (state === 'running') {
@@ -667,6 +751,14 @@ export function CLI() {
         queued={queryQueue.length}
       />
       <EventLogView events={hybridEvents} />
+      
+      {/* Details Panel - shows strategy and backtest results */}
+      <DetailsPanel 
+        strategy={currentStrategy}
+        backtestResult={currentBacktestResult}
+        diagnosis={currentDiagnosis}
+      />
+      
       {/* Intro + completed history - each item rendered once, never re-rendered */}
       <Static items={staticItems}>
         {(item) =>

@@ -1,11 +1,11 @@
 {
-  "name": "dexter-ts",
+  "name": "pistachio-ts",
   "version": "2.4.1",
-  "description": "Dexter - AI agent for deep financial research.",
+  "description": "Pistachio - AI agent for deep financial research.",
   "type": "module",
   "main": "src/index.tsx",
   "bin": {
-    "dexter-ts": "./src/index.tsx"
+    "pistachio-ts": "./src/index.tsx"
   },
   "scripts": {
     "start": "bun run src/index.tsx",
