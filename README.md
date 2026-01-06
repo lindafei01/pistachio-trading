@@ -1,293 +1,210 @@
-# Dexter 🤖
+# 🥜 Pistachio
 
-Dexter is an autonomous financial research agent that thinks, plans, and learns as it works. It performs analysis using task planning, self-reflection, and real-time market data. Think Claude Code, but built specifically for financial research.
+> AI-powered multi-agent trading system with LLM strategy generation, backtesting, and real-time execution
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![LangChain](https://img.shields.io/badge/🦜_LangChain-121212?style=flat)](https://www.langchain.com/)
+[![Bun](https://img.shields.io/badge/Bun-000000?style=flat&logo=bun&logoColor=white)](https://bun.sh/)
 
-<img width="979" height="651" alt="Screenshot 2025-10-14 at 6 12 35 PM" src="https://github.com/user-attachments/assets/5a2859d4-53cf-4638-998a-15cef3c98038" />
+## 🎯 Overview
 
-## Overview
+Pistachio is an intelligent trading system that combines the analytical power of Large Language Models with disciplined quantitative execution. It autonomously generates trading strategies, validates them through rigorous backtesting, and executes them in real-time with sub-10ms latency.
 
-Dexter takes complex financial questions and turns them into clear, step-by-step research plans. It runs those tasks using live market data, checks its own work, and refines the results until it has a confident, data-backed answer.  
+### Key Features
 
-**Key Capabilities:**
-- **Intelligent Task Planning**: Automatically decomposes complex queries into structured research steps
-- **Autonomous Execution**: Selects and executes the right tools to gather financial data
-- **Self-Validation**: Checks its own work and iterates until tasks are complete
-- **Real-Time Financial Data**: Access to income statements, balance sheets, and cash flow statements
-- **Safety Features**: Built-in loop detection and step limits to prevent runaway execution
+- **🤖 Multi-Agent Architecture**: Separate Research and Trading modes for strategy generation and execution
+- **📊 Intelligent Strategy Compilation**: LLM-powered analysis with 19+ integrated financial data tools
+- **🔄 Adaptive Risk Management**: Automatic mode switching based on performance gates (drawdown, consecutive losses)
+- **⚡ High-Performance Execution**: Sub-10ms deterministic trading decisions with compiled signal evaluation
+- **🧪 Comprehensive Backtesting**: Realistic order simulation with slippage, commission, and risk parameters
+- **🔍 Smart Diagnostics**: Auto-analysis of failed strategies with improvement suggestions
+- **💻 Interactive CLI**: Claude Code-style terminal UI for transparent strategy inspection
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/virattt?style=social)](https://twitter.com/virattt)
+## 🏗️ Architecture
 
-<img width="996" height="639" alt="Screenshot 2025-11-22 at 1 45 07 PM" src="https://github.com/user-attachments/assets/8915fd70-82c9-4775-bdf9-78d5baf28a8a" />
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Pistachio System                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌─────────────────┐         ┌──────────────────┐          │
+│  │  Research Mode  │────────▶│  Backtest Engine │          │
+│  │                 │         │                  │          │
+│  │ • LLM Analysis  │         │ • Slippage       │          │
+│  │ • Tool Calling  │         │ • Commission     │          │
+│  │ • Strategy Gen  │         │ • Stop Loss/TP   │          │
+│  └─────────────────┘         └──────────────────┘          │
+│           │                           │                      │
+│           │                           ▼                      │
+│           │                  ┌────────────────┐             │
+│           │                  │  Gate Checks   │             │
+│           │                  │                │             │
+│           │                  │ 1. Min Trades  │             │
+│           │                  │ 2. Drift       │             │
+│           │                  │ 3. Drawdown    │             │
+│           │                  └────────────────┘             │
+│           │                           │                      │
+│           │                           ▼                      │
+│           │                  ┌────────────────┐             │
+│           └─────────────────▶│ Trading Mode   │             │
+│                              │                │             │
+│                              │ • <10ms exec   │             │
+│                              │ • Real-time    │             │
+│                              │ • No LLM calls │             │
+│                              └────────────────┘             │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
 
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- [Bun](https://bun.com) runtime (v1.0 or higher)
-- LLM API key:
-  - **Recommended**: [Kimi (Moonshot)](https://platform.moonshot.cn/) API key - No content filtering, OpenAI-compatible
-  - Alternative: [OpenAI](https://platform.openai.com/api-keys) API key
-- Financial Datasets API key (get [here](https://financialdatasets.ai))
-- Tavily API key (get [here](https://tavily.com)) - optional, for web search
+- [Bun](https://bun.sh/) runtime
+- OpenAI API key or Moonshot (Kimi) API key
 
-#### Installing Bun
+### Installation
 
-If you don't have Bun installed, you can install it using curl:
-
-**macOS/Linux:**
 ```bash
-curl -fsSL https://bun.com/install | bash
-```
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/pistachio-trading.git
+cd pistachio-trading
 
-**Windows:**
-```bash
-powershell -c "irm bun.sh/install.ps1|iex"
-```
-
-After installation, restart your terminal and verify Bun is installed:
-```bash
-bun --version
-```
-
-### Installing Dexter
-
-1. Clone the repository:
-```bash
-git clone https://github.com/virattt/dexter.git
-cd dexter
-```
-
-2. Install dependencies with Bun:
-```bash
+# Install dependencies
 bun install
-```
 
-3. Set up your environment variables:
-```bash
-# Copy the example environment file
+# Set up environment variables
 cp env.example .env
-
-# Edit .env and add your API keys
-# OPENAI_API_KEY=your-api-key
-# 
-# For Kimi (Moonshot) API (recommended):
-# OPENAI_BASE_URL=https://api.moonshot.cn/v1
-# 
-# FINANCIAL_DATASETS_API_KEY=your-financial-datasets-api-key
-# TAVILY_API_KEY=your-tavily-api-key
+# Edit .env with your API keys
 ```
 
-**Note**: This project uses Kimi (Moonshot) API by default, which provides OpenAI-compatible endpoints without content filtering. If you prefer OpenAI, simply omit the `OPENAI_BASE_URL` setting.
+### Running the System
 
-### Usage
-
-Run Dexter in interactive mode:
 ```bash
-bun start
+# Start the interactive CLI
+bun run cli
+
+# Example query
+> Create an intraday strategy for AAPL on 1h timeframe; backtest on last 3 months; if gate passes then paper-execute on replay
+
+# Follow-up commands after gate failure
+> /suggest    # AI suggests improvements
+> /manual <your strategy>  # Provide custom strategy
+> /retry      # Try with different parameters
 ```
 
-Or with watch mode for development:
-```bash
-bun dev
+## 🧠 How It Works
+
+### Research Mode
+
+1. **Understanding Phase**: Extracts entities (tickers, timeframes) from user query
+2. **Planning Phase**: Selects relevant tools from 19+ available options
+3. **Execution Phase**: Calls tools (market data, news, indicators) in parallel
+4. **Strategy Compilation**: LLM generates executable strategy spec with:
+   - Trading signals (buy/sell conditions)
+   - Technical indicators (SMA, RSI, MACD, etc.)
+   - Risk parameters (stop loss, take profit)
+
+### Gate System
+
+**Gate #1: Can we start trading?**
+- Minimum trades threshold (e.g., ≥3 trades in backtest)
+- Acceptable drawdown (e.g., ≤20%)
+- Return above minimum threshold
+
+**Gate #2: Is something wrong?**
+- Consecutive losses (e.g., 3+ in a row)
+- Performance drift from backtest
+
+**Gate #3: Emergency stop**
+- Max daily loss hit (e.g., -5%)
+- Drawdown limit exceeded
+
+### Trading Mode
+
+- **Deterministic Execution**: Pre-compiled signal evaluation (no LLM calls)
+- **Low Latency**: <10ms decision time
+- **Strict Risk Controls**: Automatic position sizing and stop management
+
+## 📁 Project Structure
+
+```
+src/
+├── agent/           # Multi-phase agent orchestrator
+├── trading/         # Trading engine, backtesting, diagnostics
+├── tools/           # Financial data tools (19+ integrations)
+├── components/      # Terminal UI components
+└── model/           # LLM interaction layer
+
+examples/
+├── hybrid-trading-demo.ts    # Full hybrid mode demo
+└── test-function-calling.ts  # Tool calling verification
 ```
 
-### Example Queries
+## 🛡️ Risk Management
 
-Try asking Dexter questions like:
-- "What was Apple's revenue growth over the last 4 quarters?"
-- "Compare Microsoft and Google's operating margins for 2023"
-- "Analyze Tesla's cash flow trends over the past year"
-- "What is Amazon's debt-to-equity ratio based on recent financials?"
+Pistachio implements multiple layers of risk control:
 
-Dexter will automatically:
-1. Break down your question into research tasks
-2. Fetch the necessary financial data
-3. Perform calculations and analysis
-4. Provide a comprehensive, data-rich answer
+- **Position Sizing**: Configurable max position size (default 10% of capital)
+- **Stop Loss**: Automatic exit on adverse price movement
+- **Take Profit**: Lock in gains at target levels
+- **Max Drawdown**: System-wide circuit breaker
+- **Overfitting Prevention**: Research and backtest data separation
 
-## 🆕 Hybrid Trading Mode
-
-### Quick Start with Hybrid Mode
-
-Run the demo to see Research + Trading modes in action:
+## 🧪 Testing
 
 ```bash
+# Run type checking
+bun run typecheck
+
+# Test function calling
+bun run examples/test-function-calling-support.ts
+
+# Run hybrid trading demo
 bun run examples/hybrid-trading-demo.ts
 ```
 
-### Strategy Compilation Example
+## 📊 Supported Tools
 
-Compile a trading strategy from AI analysis:
+- **Market Data**: Yahoo Finance, real-time quotes
+- **Technical Indicators**: SMA, EMA, RSI, MACD, Bollinger Bands, ATR
+- **News & Sentiment**: Financial news APIs
+- **Economic Data**: Macro indicators, earnings calendars
 
-```bash
-bun run examples/simple-strategy-example.ts
-```
+## 🎨 UI Features
 
-### Programmatic Usage
+- **Claude Code-style Interface**: Familiar developer experience
+- **Real-time Event Log**: Mode transitions, gate decisions, trades
+- **Strategy Inspector**: View compiled signals and indicators
+- **Smart Diagnostics**: Why strategies fail + suggestions
+- **Multi-line Input**: Paste long queries without truncation
 
-```typescript
-import { HybridOrchestrator } from './src/trading/index.js';
+## 🔮 Future Enhancements
 
-// Initialize orchestrator
-const orchestrator = new HybridOrchestrator({
-  watchlist: ['AAPL', 'MSFT', 'TSLA'],
-  researchModel: 'gpt-4o',
-  strategyRefreshIntervalMs: 1000 * 60 * 60, // 1 hour
-});
+- [ ] Live trading integration (Alpaca, Interactive Brokers)
+- [ ] Portfolio-level optimization
+- [ ] Multi-asset strategies
+- [ ] Machine learning signal validation
+- [ ] Backtesting report generation (HTML/PDF)
+- [ ] Strategy versioning and A/B testing
 
-// Start (begins background strategy refresh)
-await orchestrator.start();
+## ⚠️ Disclaimer
 
-// Research Mode: Deep analysis
-const analysis = await orchestrator.deepResearch(
-  "Should I buy Tesla stock based on recent earnings?"
-);
+This software is for educational and research purposes only. Trading financial instruments involves substantial risk of loss. Past performance does not guarantee future results. Use at your own risk.
 
-// Trading Mode: Real-time execution
-marketDataStream.on('data', async (data) => {
-  // This is the hot path - < 1ms latency
-  const decision = await orchestrator.onMarketData(data.ticker, data);
-  
-  if (decision) {
-    await orchestrator.executeTrade(decision);
-  }
-});
-```
+## 📝 License
 
-### Use Cases
+MIT License - See LICENSE file for details
 
-| Mode | Use Case | Example |
-|------|----------|---------|
-| **Research Only** | Investment research | "Analyze AAPL's fundamentals for long-term investment" |
-| **Strategy Compilation** | Algorithm development | "Create a trading strategy for TSLA using RSI and MACD" |
-| **Hybrid (Both)** | Adaptive trading | AI updates strategies hourly, executes trades in real-time |
+## 🙏 Acknowledgments
 
-### Performance
+Built with:
+- [LangChain](https://www.langchain.com/) - LLM orchestration
+- [Ink](https://github.com/vadimdemedes/ink) - React for CLI
+- [Bun](https://bun.sh/) - Fast JavaScript runtime
+- [Yahoo Finance](https://finance.yahoo.com/) - Market data
 
-- **Research Mode**: 8-50 seconds per query (depends on complexity)
-- **Strategy Compilation**: 10-60 seconds per strategy
-- **Trading Mode**: < 1 millisecond per decision
-- **Strategy Refresh**: Background, configurable interval
+---
 
-## Architecture
-
-Dexter uses a multi-agent architecture with specialized components:
-
-- **Planning Agent**: Analyzes queries and creates structured task lists
-- **Action Agent**: Selects appropriate tools and executes research steps
-- **Validation Agent**: Verifies task completion and data sufficiency
-- **Answer Agent**: Synthesizes findings into comprehensive responses
-
-### 🆕 Hybrid Trading Mode (Research + Trading)
-
-Dexter now supports **two operating modes** that work together:
-
-#### 📚 Research Mode (Deep Analysis)
-- **Purpose**: Complex financial analysis and strategy generation
-- **Latency**: 8-50 seconds
-- **Uses**: Full Multi-Agent pipeline with LLM calls
-- **Output**: Detailed analysis OR compiled trading strategies
-- **Best for**: Long-term decisions, fundamental analysis, strategy development
-
-#### ⚡ Trading Mode (Fast Execution)
-- **Purpose**: Real-time trade execution
-- **Latency**: < 1 millisecond
-- **Uses**: Pre-compiled strategies (no LLM calls)
-- **Output**: Trade decisions (BUY/SELL/HOLD)
-- **Best for**: Intraday trading, high-frequency execution
-
-#### 🔄 How They Work Together
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Research Mode (Background, Periodic)                        │
-│  ─────────────────────────────────────────                   │
-│  AI analyzes markets → Generates strategies                  │
-│  "What's a good strategy for AAPL today?"                    │
-│  ↓                                                            │
-│  Compiled Strategy (executable rules)                        │
-└─────────────────────────────────────────────────────────────┘
-                         ↓ Loads into
-┌─────────────────────────────────────────────────────────────┐
-│  Trading Mode (Real-time)                                    │
-│  ──────────────────────────────                              │
-│  Market data → Execute strategy → Trade decision             │
-│  Latency: < 1ms (no AI calls)                                │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Key Innovation**: AI thinks slowly to create smart strategies, then executes them at high speed.
-
-## Tech Stack
-
-- **Runtime**: [Bun](https://bun.sh)
-- **UI Framework**: [React](https://react.dev) + [Ink](https://github.com/vadimdemedes/ink) (terminal UI)
-- **LLM Integration**: [LangChain.js](https://js.langchain.com) with multi-provider support (OpenAI, Anthropic, Google)
-- **Schema Validation**: [Zod](https://zod.dev)
-- **Language**: TypeScript
-- **Trading Engine**: Custom high-performance execution engine with sub-millisecond latency
-- **Technical Indicators**: Incremental calculation algorithms for real-time updates
-
-
-### Changing Models
-
-Type `/model` in the CLI to switch between:
-- GPT 4.1 (OpenAI)
-- Claude Sonnet 4.5 (Anthropic)
-- Gemini 3 (Google)
-
-## Features
-
-### Core Research Features
-
-- ✅ **Intelligent Task Planning**: Automatically decomposes complex queries into structured research steps
-- ✅ **Autonomous Execution**: Selects and executes the right tools to gather financial data
-- ✅ **Self-Validation**: Checks its own work and iterates until tasks are complete
-- ✅ **Real-Time Financial Data**: Access to income statements, balance sheets, and cash flow statements
-- ✅ **Safety Features**: Built-in loop detection and step limits to prevent runaway execution
-
-### 🆕 Hybrid Trading Features
-
-- ⚡ **Dual-Mode Operation**: Deep research (8-50s) + Fast execution (<1ms)
-- 🤖 **AI Strategy Generation**: Converts analysis into executable trading rules
-- 📊 **Technical Indicators**: RSI, MACD, Bollinger Bands, SMA, EMA, ATR, and more
-- 🔄 **Incremental Updates**: O(1) indicator calculations for real-time performance
-- 🎯 **Risk Management**: Built-in position sizing, stop loss, and take profit
-- 📈 **Performance Metrics**: Real-time latency tracking and trade statistics
-- 🔁 **Adaptive Strategies**: Background refresh keeps strategies aligned with market conditions
-
-### Architecture Highlights
-
-**Research Layer** (Strategic):
-- Multi-agent collaboration (Understand, Plan, Execute, Reflect, Answer)
-- Iterative refinement with self-reflection
-- Context management for efficient data handling
-- Comprehensive financial analysis
-
-**Trading Layer** (Tactical):
-- Pre-compiled strategy execution
-- Zero LLM calls in hot path
-- Sub-millisecond decision latency
-- Real-time market data processing
-
-**Hybrid Orchestration**:
-- Background strategy updates
-- Watchlist management
-- Automatic strategy loading
-- Performance monitoring
-
-## How to Contribute
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-**Important**: Please keep your pull requests small and focused.  This will make it easier to review and merge.
-
-
-## License
-
-This project is licensed under the MIT License.
+Made with 🥜 by [Your Name]
 
