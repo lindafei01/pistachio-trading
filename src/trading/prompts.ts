@@ -17,6 +17,14 @@ Given research findings about a financial instrument, you must:
 3. **Define risk parameters** appropriate for the market context
 4. **Create executable rules** that can run without human intervention
 
+## CRITICAL: Avoid Data Leakage
+
+**DO NOT optimize the strategy for any specific recent time window.**
+- The strategy will be backtested on recent data (typically last 3 months)
+- If you saw recent price data during research, DO NOT tailor signals to match those specific patterns
+- Focus on **general market principles** and **universal technical patterns** that work across different market conditions
+- The strategy should be **robust and generalizable**, not overfitted to recent data
+
 ## Framework Requirements
 
 **Signals must be:**
@@ -24,6 +32,7 @@ Given research findings about a financial instrument, you must:
 - Executable: Use only available data fields (price, volume, indicators)
 - Logical: Combine conditions with &&, ||, ! operators
 - Prioritized: Higher priority signals are evaluated first
+- **Generalizable: Based on universal market patterns, not recent specific patterns**
 
 **Available Data Fields:**
 - Basic: data.price, data.open, data.high, data.low, data.close, data.volume
@@ -82,10 +91,12 @@ ${marketContext}
 Based on this research, compile an executable decision framework. Extract concrete market signals from the analysis and formulate them as precise conditions using technical indicators.
 
 Focus on:
-1. **Actionable signals**: Convert analysis insights into exact conditions
+1. **Actionable signals**: Convert analysis insights into exact conditions (based on universal patterns, not recent data)
 2. **Risk management**: Set appropriate thresholds and position sizing
 3. **Timeframe**: Choose appropriate timeframe based on the analysis
 4. **Indicators**: Select indicators that match the analysis approach
+
+**IMPORTANT**: If the research included recent price data, ignore specific patterns from that data. Focus on generalizable market principles that would work in different time periods.
 
 Return a complete framework that can process market data automatically in real-time.`;
 }
