@@ -15,16 +15,49 @@ Inspired by [Dexter](https://github.com/virattt/dexter), Pistachio is an agentic
 - **🤖 Multi-Agent Architecture**: Separate Research and Trading modes for strategy generation and execution
 - **📊 Intelligent Strategy Compilation**: LLM-powered analysis with 19+ integrated financial data tools
 - **🔄 Adaptive Risk Management**: Automatic mode switching based on performance gates (drawdown, consecutive losses)
-- **⚡ High-Performance Execution**: Sub-10ms deterministic trading decisions with compiled signal evaluation
+<!-- - **⚡ High-Performance Execution**: Sub-10ms deterministic trading decisions with compiled signal evaluation -->
 - **🧪 Comprehensive Backtesting**: Realistic order simulation with slippage, commission, and risk parameters
 - **🔍 Smart Diagnostics**: Auto-analysis of failed strategies with improvement suggestions
 - **💻 Interactive CLI**: Claude Code-style terminal UI for transparent strategy inspection
 
 ## 🏗️ Architecture
 
-![Pistachio System Design](img/system%20design.png)
-![Pistachio CLI Demo #1](img/system%20screenshot1.png)
-![Pistachio CLI Demo #2](img/system%20screenshot2.png)
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Pistachio System                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────┐         ┌──────────────────┐           │ 
+│  │  Research Mode  │-------> │  Backtest Engine │           │
+│  │                 │         │                  │           │
+│  │ • LLM Analysis  │         │ • Slippage       │           │
+│  │ • Tool Calling  │         │ • Commission     │           │
+│  │ • Strategy Gen  │         │ • Stop Loss/TP   │           │ 
+│  └─────────────────┘         └──────────────────┘           │
+│           │                           │                     │
+│           │                           ▼                     │
+│           │                  ┌────────────────┐             │
+│           │                  │  Gate Checks   │             │
+│           │                  │                │             │
+│           │                  │ 1. Min Trades  │             │
+│           │                  │ 2. Drift       │             │
+│           │                  │ 3. Drawdown    │             │
+│           │                  └────────────────┘             │
+│           │                           │                     │
+│           │                           ▼                     │
+│           │                  ┌────────────────┐             │
+│           └----------------->│ Trading Mode   │             │
+│                              │                │             │
+│                              │ • Real-time    │             │
+│                              │ • No LLM calls │             │
+│                              │                │             │
+│                              └────────────────┘             │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+![Pistachio CLI Demo #1](img/screenshot1.png)
+![Pistachio CLI Demo #2](img/screenshot2.png)
 
 ## 🚀 Quick Start
 
